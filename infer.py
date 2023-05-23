@@ -38,7 +38,7 @@ def main():
     model = fuse_bn_recursively(model)
     model = model.cuda().half().eval()
 
-    print('done')
+    # print('done')
 
     classes_list = np.array(state['idx_to_class'])
     print('done\n')

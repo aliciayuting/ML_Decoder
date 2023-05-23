@@ -1,12 +1,9 @@
-import logging
 import os
-from urllib import request
 
 import torch
 
 from ...ml_decoder.ml_decoder import add_ml_decoder_head
 
-logger = logging.getLogger(__name__)
 
 from ..tresnet import TResnetL
 
