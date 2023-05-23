@@ -8,51 +8,32 @@ from ...ml_decoder.ml_decoder import add_ml_decoder_head
 
 logger = logging.getLogger(__name__)
 
-from ..tresnet import TResnetM, TResnetL, TResnetXL
+from ..tresnet import TResnetL
 
 
-def create_model(args,load_head=False):
+
+# Specifically for Stanford model
+
+def create_model():
     """Create a model
     """
-    model_params = {'args': args, 'num_classes': args.num_classes}
-    args = model_params['args']
-    args.model_name = args.model_name.lower()
+    model_params = {'num_classes': 196}
 
-    if args.model_name == 'tresnet_m':
-        model = TResnetM(model_params)
-    elif args.model_name == 'tresnet_l':
-        model = TResnetL(model_params)
-    elif args.model_name == 'tresnet_xl':
-        model = TResnetXL(model_params)
-    else:
-        print("model: {} not found !!".format(args.model_name))
-        exit(-1)
+    model = TResnetL(model_params)
 
     ####################################################################################
-    if args.use_ml_decoder:
-        model = add_ml_decoder_head(model,num_classes=args.num_classes,num_of_groups=args.num_of_groups,
-                                    decoder_embedding=args.decoder_embedding, zsl=args.zsl)
+   
+    model = add_ml_decoder_head(model,num_classes=196,num_of_groups=-1,
+                                decoder_embedding=768, zsl=0)
     ####################################################################################
     # loading pretrain model
-    model_path = args.model_path
-    if args.model_name == 'tresnet_l' and os.path.exists("./tresnet_l.pth"):
-        model_path = "./tresnet_l.pth"
-    if model_path:  # make sure to load pretrained model
-        if not os.path.exists(model_path):
-            print("downloading pretrain model...")
-            request.urlretrieve(args.model_path, "./tresnet_l.pth")
-            model_path = "./tresnet_l.pth"
-            print('done')
-        state = torch.load(model_path, map_location='cpu')
-        if not load_head:
-            if 'model' in state:
-                key = 'model'
-            else:
-                key = 'state_dict'
-            filtered_dict = {k: v for k, v in state[key].items() if
-                             (k in model.state_dict() and 'head.fc' not in k)}
-            model.load_state_dict(filtered_dict, strict=False)
-        else:
-            model.load_state_dict(state[key], strict=True)
+    model_path = './tresnet_l_stanford_card_96.41.pth'
+   
+    state = torch.load(model_path, map_location='cpu')
+    if 'model' in state:
+        key = 'model'
+    else:
+        key = 'state_dict'
+    model.load_state_dict(state[key], strict=True)
 
     return model
