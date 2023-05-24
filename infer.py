@@ -29,14 +29,12 @@ def main():
     th = 0.75
 
     model = create_model()
-    model = model.cuda()
     state = torch.load(model_path, map_location='cpu')
     model.load_state_dict(state['model'], strict=True)
 
-    model = model.cpu()
     model = InplacABN_to_ABN(model)
     model = fuse_bn_recursively(model)
-    model = model.cuda().half().eval()
+    model = model.cuda().eval() # .half().eval()
 
     # print('done')
 
@@ -49,7 +47,7 @@ def main():
     im_resize = im.resize((384, 384))
     np_img = np.array(im_resize, dtype=np.uint8)
     tensor_img = torch.from_numpy(np_img).permute(2, 0, 1).float() / 255.0  # HWC to CHW
-    tensor_batch = torch.unsqueeze(tensor_img, 0).cuda().half() # float16 inference
+    tensor_batch = torch.unsqueeze(tensor_img, 0).cuda() #.half() # float16 inference
     output = torch.squeeze(torch.sigmoid(model(tensor_batch)))
     np_output = output.cpu().detach().numpy()
 
